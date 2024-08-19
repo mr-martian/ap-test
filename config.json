@@ -1,0 +1,10 @@
+{
+	"oci-fra": {
+		"dir": "apertium-oci-fra",
+		"input": "langs/apertium-oci/corpus/jornalet.5000.txt"
+	},
+	"fra-oci": {
+		"dir": "apertium-oci-fra",
+		"input": "langs/apertium-fra/corpus/jornalet.5000.txt"
+	}
+}
