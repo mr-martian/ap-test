@@ -10,7 +10,7 @@ ENV = {
     'PATH': ':'.join([
         os.path.join(here, 'lttoolbox/lttoolbox'),
         os.path.join(here, 'apertium/apertium'),
-        os.environ('PATH'),
+        os.environ['PATH'],
     ]),
 }
 
@@ -23,16 +23,16 @@ def get_required(name):
 def update_lang(name):
     path = os.path.join('langs', name)
     if not os.path.isdir(path):
-        os.makedirs('data', exist_ok=True)
-        subprocess.run(['git', 'clone', '-d', '1',
-                        f'https://github.com/apertium/{name}'], cwd='data')
+        os.makedirs('langs', exist_ok=True)
+        subprocess.run(['git', 'clone', '--depth', '1',
+                        f'https://github.com/apertium/{name}'], cwd='langs')
         args = ['./autogen.sh']
         for n, req in enumerate(get_required(name), 1):
             args.append(f'--with-lang{n}=../{req}')
         subprocess.run(args, cwd=path)
     else:
         subprocess.run(['git', 'fetch', '--all'], cwd=path)
-        subprocess.run(['git', 'reset', '--hard', 'origin/'+branch], cwd=path)
+        subprocess.run(['git', 'reset', '--hard', 'origin/master'], cwd=path)
         subprocess.run(['make', 'clean'], cwd=path)
     subprocess.run(['make', '-j4'], cwd=path, env=ENV)
 
@@ -43,7 +43,7 @@ def update_all_langs(needed):
         cur = todo.pop()
         if cur in done:
             continue
-        req = get_required(name)
+        req = get_required(cur)
         if all(r in done for r in req):
             update_lang(cur)
             done.add(cur)
@@ -64,16 +64,17 @@ def run_test(modes, ltbranch, apbranch):
     for m in sorted(modes):
         d = modes[m]['dir']
         i = modes[m]['input']
+        md = d.split('-', 1)[1]
         prefix = f'output/{m}.{ltbranch}.{apbranch}'
         with open(f'{prefix}.err.txt', 'w') as ferr:
             subprocess.run(['apertium', '-d', os.path.join('langs', d),
-                            i, f'{prefix}.out.txt'],
+                            md, i, f'{prefix}.out.txt'],
                            env=ENV, stderr=ferr)
 
 def run_both(modes, ltbranch, apbranch):
     if os.path.isdir('output'):
         shutil.rmtree('output')
-    os.path.mkdir('output')
+    os.mkdir('output')
     run_test(modes, 'main', 'main')
     run_test(modes, ltbranch, apbranch)
 
