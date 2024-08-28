@@ -5,15 +5,6 @@ import os
 import os.path
 import shutil
 
-here = os.path.abspath(os.getcwd())
-ENV = {
-    'PATH': ':'.join([
-        os.path.join(here, 'lttoolbox/lttoolbox'),
-        os.path.join(here, 'apertium/apertium'),
-        os.environ('PATH'),
-    ]),
-}
-
 def get_required(name):
     if name.count('-') == 2:
         _, l1, l2 = name.split('-')
@@ -21,20 +12,18 @@ def get_required(name):
     return []
 
 def update_lang(name):
-    path = os.path.join('langs', name)
-    if not os.path.isdir(path):
-        os.makedirs('data', exist_ok=True)
-        subprocess.run(['git', 'clone', '-d', '1',
-                        f'https://github.com/apertium/{name}'], cwd='data')
+    if not os.path.isdir(name):
+        subprocess.run(['git', 'clone', '--depth', '1',
+                        f'https://github.com/apertium/{name}'])
         args = ['./autogen.sh']
         for n, req in enumerate(get_required(name), 1):
             args.append(f'--with-lang{n}=../{req}')
-        subprocess.run(args, cwd=path)
+        subprocess.run(args, cwd=name)
     else:
-        subprocess.run(['git', 'fetch', '--all'], cwd=path)
-        subprocess.run(['git', 'reset', '--hard', 'origin/'+branch], cwd=path)
-        subprocess.run(['make', 'clean'], cwd=path)
-    subprocess.run(['make', '-j4'], cwd=path, env=ENV)
+        subprocess.run(['git', 'fetch', '--all', '--depth', '1'], cwd=name)
+        subprocess.run(['git', 'reset', '--hard', 'origin/'+branch], cwd=name)
+        subprocess.run(['make', 'clean'], cwd=name)
+    subprocess.run(['make', '-j4'], cwd=name)
 
 def update_all_langs(needed):
     todo = sorted(needed)
@@ -56,7 +45,7 @@ def build_tools(ltbranch, apbranch):
         subprocess.run(['git', 'clone', 'https://github.com/apertium/lttoolbox'])
     if not os.path.isdir('apertium'):
         subprocess.run(['git', 'clone', 'https://github.com/apertium/apertium'])
-    subprocess.run(['./rebuild-tools.sh', ltbranch, apbranch])
+    subprocess.run(['test/rebuild-tools.sh', ltbranch, apbranch])
 
 def run_test(modes, ltbranch, apbranch):
     build_tools(ltbranch, apbranch)
@@ -64,16 +53,15 @@ def run_test(modes, ltbranch, apbranch):
     for m in sorted(modes):
         d = modes[m]['dir']
         i = modes[m]['input']
-        prefix = f'output/{m}.{ltbranch}.{apbranch}'
+        prefix = f'test/output/{m}.{ltbranch}.{apbranch}'
         with open(f'{prefix}.err.txt', 'w') as ferr:
             subprocess.run(['apertium', '-d', os.path.join('langs', d),
-                            i, f'{prefix}.out.txt'],
-                           env=ENV, stderr=ferr)
+                            i, f'{prefix}.out.txt'], stderr=ferr)
 
 def run_both(modes, ltbranch, apbranch):
-    if os.path.isdir('output'):
-        shutil.rmtree('output')
-    os.path.mkdir('output')
+    if os.path.isdir('test/output'):
+        shutil.rmtree('test/output')
+    os.path.mkdir('test/output')
     run_test(modes, 'main', 'main')
     run_test(modes, ltbranch, apbranch)
 
