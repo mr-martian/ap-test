@@ -12,14 +12,11 @@ with open(args.config) as fin:
 
 print(f'''#!/bin/bash
 
-#git config --global http.sslverify false
-
 git clone https://github.com/apertium/lttoolbox --depth 1
 pushd lttoolbox
 git fetch --all --depth 1
 git reset --hard "origin/{args.ltbranch}"
 ./autogen.sh
-make clean
 make -j4
 make install
 popd
@@ -29,7 +26,6 @@ pushd apertium
 git fetch --all --depth 1
 git reset --hard "origin/{args.apbranch}"
 ./autogen.sh
-make clean
 make -j4
 make install
 popd
@@ -45,4 +41,4 @@ for m, d in sorted(modes.items()):
     prefix = f'test/output/{m}.{args.ltbranch}.{args.apbranch}'
     print(f'apertium -d {d["dir"]} {m} "{d["input"]}" "{prefix}.out.txt" 2>"{prefix}.err.txt"')
 
-print(f'ls > /test/output/{args.ltbranch}.{args.apbranch}.ls.txt')
+print(f'ls > test/output/{args.ltbranch}.{args.apbranch}.ls.txt')
