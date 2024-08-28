@@ -21,7 +21,7 @@ def update_lang(name):
         subprocess.run(args, cwd=name)
     else:
         subprocess.run(['git', 'fetch', '--all', '--depth', '1'], cwd=name)
-        subprocess.run(['git', 'reset', '--hard', 'origin/'+branch], cwd=name)
+        subprocess.run(['git', 'reset', '--hard', 'origin/master'], cwd=name)
         subprocess.run(['make', 'clean'], cwd=name)
     subprocess.run(['make', '-j4'], cwd=name)
 
@@ -56,12 +56,12 @@ def run_test(modes, ltbranch, apbranch):
         prefix = f'test/output/{m}.{ltbranch}.{apbranch}'
         with open(f'{prefix}.err.txt', 'w') as ferr:
             subprocess.run(['apertium', '-d', os.path.join('langs', d),
-                            i, f'{prefix}.out.txt'], stderr=ferr)
+                            m, i, f'{prefix}.out.txt'], stderr=ferr)
 
 def run_both(modes, ltbranch, apbranch):
     if os.path.isdir('test/output'):
         shutil.rmtree('test/output')
-    os.path.mkdir('test/output')
+    os.mkdir('test/output')
     run_test(modes, 'main', 'main')
     run_test(modes, ltbranch, apbranch)
 
