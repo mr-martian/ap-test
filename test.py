@@ -32,7 +32,7 @@ def update_all_langs(needed):
         cur = todo.pop()
         if cur in done:
             continue
-        req = get_required(name)
+        req = get_required(cur)
         if all(r in done for r in req):
             update_lang(cur)
             done.add(cur)
