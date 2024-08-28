@@ -12,6 +12,8 @@ with open(args.config) as fin:
 
 print(f'''#!/bin/bash
 
+git config --global http.sslverify false
+
 git clone https://github.com/apertium/lttoolbox --depth 1
 pushd lttoolbox
 git fetch --all --depth 1
@@ -35,10 +37,13 @@ popd
 ''')
 
 for package in sorted(set(m['dir'] for m in modes.values())):
-    print('apertium-get', package.replace('apertium-', ''), '--depth 1')
+    print('test/apertium-get', package.replace('apertium-', ''), '--depth 1')
 
 print('')
 
 for m, d in sorted(modes.items()):
     prefix = f'test/output/{m}.{args.ltbranch}.{args.apbranch}'
     print(f'apertium -d {d["dir"]} {m} "{d["input"]}" "{prefix}.out.txt" 2>"{prefix}.err.txt"')
+
+print(f'ls > /test/output/{args.ltbranch}.{args.apbranch}.ls.txt')
+
