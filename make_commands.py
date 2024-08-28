@@ -12,19 +12,15 @@ with open(args.config) as fin:
 
 print(f'''#!/bin/bash
 
-git clone https://github.com/apertium/lttoolbox --depth 1
+git clone https://github.com/apertium/lttoolbox --depth 1 --branch {args.lbranch}
 pushd lttoolbox
-git fetch --all --depth 1
-git reset --hard "origin/{args.ltbranch}"
 ./autogen.sh
 make -j4
 make install
 popd
 
-git clone https://github.com/apertium/apertium --depth 1
+git clone https://github.com/apertium/apertium --depth 1 --branch {args.apbranch}
 pushd apertium
-git fetch --all --depth 1
-git reset --hard "origin/{args.apbranch}"
 ./autogen.sh
 make -j4
 make install
